@@ -1,0 +1,330 @@
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) 2024 Intel Corporation.
+//
+// This software and the related documents are Intel copyrighted materials, and
+// your use of them is governed by the express license under which they were
+// provided to you ("License"). Unless the License provides otherwise, you may
+// not use, modify, copy, publish, distribute, disclose or transmit this
+// software or the related documents without Intel's prior written permission.
+//
+// This software and the related documents are provided as is, with no express
+// or implied warranties, other than those that are expressly stated in the
+// License.
+//===----------------------------------------------------------------------===//
+
+#ifndef UNITARY_OPS_H
+#define UNITARY_OPS_H
+
+// Intel(R) Quantum SDK header files
+#include <clang/Quantum/quintrinsics.h>
+#include <clang/Quantum/qexpr.h>
+#include <qexpr_utils.h>
+
+using C = std::complex<double>;
+using UMatrix = std::vector<std::vector<C>>;
+
+//////////////////
+// Declarations //
+//////////////////
+
+/** @defgroup UnitaryZYZ Unitary Gates Z-Y-Z
+ *  The gates apply a unitary operation specified by rotation gates RZ-RY-RZ
+ *  @{
+ */
+/*******************************************************************************
+ * @brief Apply a unitary gate.
+ *
+ * Apply a unitary gate in terms of rotation gates RZ-RY-RZ according to
+ * Barenco, Adriano, et al. "Elementary gates for quantum computation."Physical
+ * review A 52.5 (1995): 3457.
+ * or Theorem 4.1 of
+ * M. A. Nielsen and I. L. Chuang, Quantum Computation and Quantum Information:
+ * 10th Anniversary Edition. Cambridge: Cambridge University Press, 2010.
+ *
+ * Theorem 4.1 states:
+ * Suppose U is a unitary operation on a single qubit, then there exists real
+ * numbers alpha, beta, gamma, delta such that
+ *   \f$U=\exp^{i\alpha}RZ(\beta)RY(\gamma)RZ(\delta)\f$
+ * The phase factor \f$\exp\left\{i\alpha\right\}\f$ is not a physical
+ * observable and doesn't affect the probabilities of a single qubit state.
+ *
+ * @param beta the angle of the final RZ rotation applied.
+ * @param gamma the angle of the RY rotation applied.
+ * @param delta the angle of the first RZ rotation applied.
+ * @param target the qbit that the operation is applied to.
+ ****************************************************************************/
+quantum_kernel void Uzyz(const double &beta, const double &gamma,
+                         const double &delta, qbit &target);
+
+/******************************************************************************
+ * @brief Return QExpr of a unitary gate
+ *
+ * Return a QExpr of a unitary gate in terms of rotation gates RZ-RY-RZ
+ * according to
+ * Barenco, Adriano, et al. "Elementary gates for quantum computation." Physical
+ * review A 52.5 (1995): 3457.
+ * or Theorem 4.1 of
+ * M. A. Nielsen and I. L. Chuang, Quantum Computation and Quantum Information:
+ * 10th Anniversary Edition. Cambridge: Cambridge University Press, 2010.
+ * Theorem 4.1 states:
+ * Suppose U is a unitary operation on a single qubit, then there exists real
+ * numbers alpha, beta, gamma, delta such that
+ *   \f$U=\exp^{i\alpha}RZ(\beta)RY(\gamma)RZ(\delta)\f$
+ * The phase factor \f$\exp\left\{i\alpha\right\} is not a physical observable
+ * and doesn't affect the probabilities of a single qubit state.
+ *
+ * @param beta the angle of the final RZ rotation applied.
+ * @param gamma the angle of the RY rotation applied.
+ * @param delta the angle of the first RZ rotation applied.
+ * @param target the qbit that the operation is applied to.
+ *****************************************************************************/
+QExpr _Uzyz(qbit &target, const double &beta,
+            const double &gamma, const double &delta);
+
+/******************************************************************************
+ * @brief Return a QExpr implementing the unitary U on the qubit q.
+ *
+ * Return a QExpr composed of rotations RZ-RY-RZ equivalent to the unitary gate
+ * defined by the input matrix elements.
+ *
+ * @param U A single-qubit (2x2) unitary.
+ * @param q The qubit on which to apply \c U.
+ *****************************************************************************/
+QExpr fromUnitary1(UMatrix &U, qbit &q);
+
+/******************************************************************************
+ * @brief Apply a controlled unitary gate.
+ *
+ * Apply a controlled-unitary gate in terms of rotation gates RZ-RY-RZ according
+ * to
+ * Barenco, Adriano, et al. "Elementary gates for quantum computation."
+ * Physical Review A 52.5 (1995): 3457.
+ * or Corollary 4.2 of
+ * M. A. Nielsen and I. L. Chuang, Quantum Computation and Quantum Information:
+ * 10th Anniversary Edition. Cambridge: Cambridge University Press, 2010.
+ * Corollary 4.2 states:
+ * Suppose U is a unitary gate on a single qubit. Then there exists unitary
+ * operators A, B, C on a single qubit such that
+ *   \f$ABC = I\f$
+ * and
+ *   \f$U=\exp\left\{i\alpha\right\}AXBXC\f$
+ * where \f$\alpha\f$ is some overall phase factor.
+ *
+ * @param beta the angle of the final RZ rotation applied.
+ * @param gamma the angle of the RY rotation applied.
+ * @param delta the angle of the first RZ rotation applied.
+ * @param ctrl the qbit controlling the operation.
+ * @param target the qbit that the operation is applied to.
+ *****************************************************************************/
+quantum_kernel void cUzyz(const double &beta, const double &gamma,
+                          const double &delta, qbit &ctrl, qbit &target);
+
+/******************************************************************************
+ * @brief Apply a unitary controlled by two qubits and using one ancilla
+ *
+ * Apply a controlled-controlled unitary gate according to the so-called
+ * Toffoli ladder construction.
+ * The gate U will be applied if and only if qbits ctrl1 and ctrl2 are set.
+ *
+ * @param ctrl1 qbit variable whose state will determine the first control.
+ * @param ctrl2 qbit variable whose state will determine the second control.
+ * @param work1 the ancilla qubit that facilitates the Toffoli ladder
+ * @param target the qbit variable to apply the gate to.
+ * @param beta  the angle of the final RZ rotation applied.
+ * @param gamma the angle of the RY rotation applied.
+ * @param delta the angle of the first RZ rotation applied.
+ *****************************************************************************/
+quantum_kernel void twoControl_U(qbit &ctrl1, qbit &ctrl2, qbit &work1,
+                                 qbit &target, const double &beta,
+                                 const double &gamma,
+                                 const double &delta);
+
+/******************************************************************************
+ * @brief Apply a unitary controlled by three qubits and using two ancilla.
+ *
+ * Apply a c-c-c-unitary gate according to the so-called Toffoli ladder
+ * construction.
+ * The gate U will be applied if and only if qbits ctrl1, ctrl2, and ctrl3 are
+ * set.
+ *
+ * @param ctrl1 qbit variable whose state will determine the first control.
+ * @param ctrl2 qbit variable whose state will determine the second control.
+ * @param ctrl3 qbit variable whose state will determine the third control.
+ * @param work1 ancilla qubit that facilitates the Toffoli ladder
+ * @param work2 ancilla qubit that facilitates the Toffoli ladder
+ * @param target the qbit variable to apply the gate to.
+ * @param beta  the angle of the final RZ rotation applied.
+ * @param gamma the angle of the RY rotation applied.
+ * @param delta the angle of the first RZ rotation applied.
+ *****************************************************************************/
+quantum_kernel void threeControl_U(qbit &ctrl1, qbit &ctrl2, qbit &ctrl3,
+                                   qbit &work1, qbit &work2, qbit &target,
+                                   const double &beta, const double &gamma,
+                                   const double &delta);
+
+/******************************************************************************
+ * @brief Return QExpr of a unitary gate with one or more controls.
+ *
+ * Return a _Uzyz unitary gate with one or more control qubits using
+ * Functional Language Extension for Quantum (FLEQ) syntax.
+ *
+ * Here, the _Uzyz function is further transformed by adding a number of
+ * controls. The number and identity of the control qubits is determined by the
+ * contents of the QList container ctrls.
+ *
+ * @param ctrls a QList container, each qbit variable is a control.
+ * @param target the qbit variable to apply _Uzyz to.
+ * @param beta the angle of the final RZ rotation applied.
+ * @param gamma the angle of the RY rotation applied.
+ * @param delta the angle of the first RZ rotation applied.
+ *****************************************************************************/
+QExpr multi_ctrl_Uzyz(qlist::QList ctrls, qbit &target,
+                      const double &beta, const double &gamma,
+                      const double &delta);
+
+/** @} */ // end of group UnitaryZYZ
+
+
+
+////////////////////
+// Implementation //
+////////////////////
+
+////////////////////////////////////////////
+// Single-qubit unitary ZYZ decomposition //
+////////////////////////////////////////////
+
+quantum_kernel void Uzyz(const double &beta, const double &gamma,
+                         const double &delta, qbit &target){
+  RZ(target, delta);
+  RY(target, gamma);
+  RZ(target, beta);
+}
+
+
+QExpr _Uzyz(qbit &target, const double &beta,
+            const double &gamma, const double &delta) {
+
+  return qexpr::_RZ(target, delta) + qexpr::_RY(target, gamma)
+         + qexpr::_RZ(target, beta);
+}
+
+
+quantum_kernel void cUzyz(qbit &ctrl, qbit &target, const double &beta,
+                          const double &gamma, const double &delta) {
+  // C
+  double rotation_c = (delta - beta)/2;
+  RZ(target, rotation_c);
+
+  // X
+  CNOT(ctrl, target);
+
+  // B
+  double rotation_bz = -1.0*(delta + beta)/2;
+  RZ(target, rotation_bz);
+
+  double rotation_by = gamma / (-2);
+  RY(target, rotation_by);
+
+  // X
+  CNOT(ctrl, target);
+
+  // A
+  double rotation_ay = gamma / 2;
+  RY(target, rotation_ay);
+
+  double rotation_az = beta;
+  RZ(target, rotation_az);
+}
+
+
+quantum_kernel void twoControl_U(qbit &ctrl1, qbit &ctrl2, qbit &work1,
+                                 qbit &target, const double &beta,
+                                 const double &gamma,
+                                 const double &delta) {
+  Toffoli(ctrl1, ctrl2, work1);
+  cUzyz(work1, target, beta, gamma, delta);
+  Toffoli(ctrl1, ctrl2, work1);
+}
+
+
+quantum_kernel void threeControl_U(qbit &ctrl1, qbit &ctrl2, qbit &ctrl3,
+                                   qbit &work1, qbit &work2, qbit &target,
+                                   const double &beta, const double &gamma,
+                                   const double &delta) {
+  Toffoli(ctrl1, ctrl2, work1);
+  twoControl_U(ctrl3, work1, work2, target, beta, gamma, delta);
+  Toffoli(ctrl1, ctrl2, work1);
+}
+
+
+QExpr multi_ctrl_Uzyz(qlist::QList ctrls, qbit &target,
+                      const double &beta, const double &gamma,
+                      const double &delta) {
+
+  return qexpr::control(ctrls, _Uzyz(target, beta, gamma, delta));
+}
+
+/******************************************************************************
+ * @brief Return a tuple of the angles
+ *        \f$U = \exp\left\{i\phi\right\} RZ(\alpha) RY(\beta) RZ(\gamma).\f$
+ *
+ * Return a tuple of angles such that the (2x2) unitary gate defined by the
+ * input matrix elements U is equivalent to
+ * U = e^{i \phi} \left[ \begin{matrix} e^{-i\gamma/2 -i\alpha/2} \cos(\beta/2) & -e^{-i\gamma/2 +i\alpha/2} \sin(\beta/2) \\ e^{ i\gamma/2 -i\alpha/2} \sin(\beta/2) &  e^{ i\gamma/2 +i\alpha/2} \cos(\beta/2) \\ \end{matrix} \right]
+ * Each row of the matrix is an entry in the outer vector. The entries of the
+ * row are the elements of the inner vector.
+ *
+ * @param U A single-qubit (2x2) unitary matrix given as a vector of vectors.
+ *****************************************************************************/
+std::tuple<double, double, double, double> unitary1ToZYZDecomposition(UMatrix& U) {
+  const double EPSILON = 10e-20; // used for determining == 0
+
+  // compute Phi and rescale the remaining elements
+  // determinant = e^(i*2*Phi)
+  std::complex<double> determinant = U.at(0).at(0)*U.at(1).at(1) - U.at(0).at(1)*U.at(1).at(0);
+
+  double Phi = std::atan2(determinant.imag(), determinant.real()) / 2;
+
+  // compute v matrix where v = u * e^-i*phase
+  std::complex<double> phase(std::cos(Phi), -1*std::sin(Phi));
+  std::vector<std::complex<double>> v;
+  for (auto& row : U) {
+    for (auto& element : row) {
+      v.push_back(element * phase);
+    }
+  }
+
+  double beta = std::acos(2*std::norm(v.at(0))-1); // assume |v00| != 0
+  if (std::norm(v.at(1)) >= 0.0 - EPSILON && std::norm(v.at(1)) <= 0.0 + EPSILON) {  // if |v00| < |v01|
+    beta = std::asin(1-2*std::norm(v.at(1)));
+  }
+
+  double alpha_plus_gamma = 2 * std::atan2(v.at(3).imag() / std::cos(beta/2),
+                                          v.at(3).real() / std::cos(beta/2));
+  if (std::cos(beta/2) >= 0.0 - EPSILON && std::cos(beta/2) <= 0.0 + EPSILON) {
+    alpha_plus_gamma = 0;
+  }
+
+  double alpha_minus_gamma = 2 * std::atan2(v.at(2).imag() / std::sin(beta/2),
+                                           v.at(2).real() / std::sin(beta/2));
+  if (std::sin(beta/2) >= 0.0 - EPSILON && std::sin(beta/2) <= 0.0 + EPSILON) {
+    alpha_minus_gamma = 0;
+  }
+
+  double alpha = (alpha_plus_gamma + alpha_minus_gamma) / 2;
+  double gamma= (alpha_plus_gamma - alpha_minus_gamma) / 2;
+
+  return {Phi, alpha, beta, gamma};
+}
+
+
+QExpr fromUnitary1(UMatrix &U, qbit &q) {
+    auto [Phi, alpha, beta, gamma] = unitary1ToZYZDecomposition(U);
+    // Ignore the phase (first tup) because we only work up to phase
+    return qexpr::_RZ(q, alpha) + qexpr::_RY(q, beta) + qexpr::_RZ(q, gamma);
+}
+
+#endif
