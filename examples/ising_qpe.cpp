@@ -166,7 +166,7 @@ int main(){
     unsigned instance = rand() & ((1 << chain_size) - 1);
 
     //Use classical method to calculate the energy
-    unsigned e_c = calcE_classical(instance, state, chain_size);
+    unsigned e_c = calcEclassical(instance, state, chain_size);
 
     //use QPE to calculate the energy.
     unsigned e_q = 0;
