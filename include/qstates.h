@@ -14,6 +14,14 @@
 // or implied warranties, other than those that are expressly stated in the
 // License.
 //===----------------------------------------------------------------------===//
+///
+/// \file qstates.h
+/// \brief A library of quantum states.
+///
+///  A collection of implementations for setting qubits into specific
+///  quantum states.
+///
+//===----------------------------------------------------------------------===//
 
 #ifndef QSTATES_H
 #define QSTATES_H
@@ -26,24 +34,31 @@
 // Declarations //
 //////////////////
 
-/*******************************************************************************
- * @brief Implements the Greenberger–Horne–Zeilinger (GHZ) State
- *
- * Prepares a Greenberger–Horne–Zeilinger (GHZ) State for an arbitrary
- * number of qubits, i.e. preparing the state (1/sqrt(2)) |0...0>+|1...1>
- *
- * @param qs A list of qubits to create the GHZ state on
- ****************************************************************************/
+/** 
+ * @defgroup qstates Quantum States
+ * Functions representing quantum states with specific identities and
+ * extrapolations.
+ * @{
+ */
+
+/// @brief Implements the Greenberger–Horne–Zeilinger (GHZ) State
+///
+/// Prepares a Greenberger–Horne–Zeilinger (GHZ) State for on the input qubits
+/// for any number of qubits, i.e. preparing the state
+///    \f$    \frac{1}{\sqrt{2}} \{\ket{0 \ldots 0} + \ket{1 \dots 1} \}    \f$
+///
+/// @param qs A list of qubits to create the GHZ state on
 PROTECT QExpr ghz(qlist::QList qs);
+
+/** @} */ // end of qstates
 
 ////////////////////
 // Implementation //
 ////////////////////
 
-
-///////////////////////////////////////////////
-/// Greenberger–Horne–Zeilinger (GHZ) State ///
-///////////////////////////////////////////////
+/////////////////////////////////////////////
+// Greenberger–Horne–Zeilinger (GHZ) State //
+/////////////////////////////////////////////
 
 PROTECT QExpr ghz(qlist::QList qs) {
     int len = qs.size();

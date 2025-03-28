@@ -1,6 +1,8 @@
+//===--- pauli_ops.h ------------------------------*- C++ -*---------------===//
+//
 //===----------------------------------------------------------------------===//
 //
-// Copyright 2024 Intel Corporation.
+// Copyright (C) 2024 Intel Corporation.
 //
 // This software and the related documents are Intel copyrighted materials, and
 // your use of them is governed by the express license under which they were
@@ -12,6 +14,15 @@
 // or implied warranties, other than those that are expressly stated in the
 // License.
 //===----------------------------------------------------------------------===//
+///
+/// \file pauli_ops.h
+/// \brief A library of operations for Pauli strings.
+///
+/// A set of operations that take as input a Pauli string and output a
+/// quantum kernel expression implementing the multi-qubit rotation,
+/// measurement, or preparation specified.
+///
+//===----------------------------------------------------------------------===//
 
 #ifndef PAULI_OPS_H
 #define PAULI_OPS_H
@@ -22,10 +33,17 @@
 #include <clang/Quantum/datalist.h>
 #include <qexpr_utils.h>
 
-////////////////////
-/// Declarations ///
-////////////////////
 
+//////////////////
+// Declarations //
+//////////////////
+
+/** 
+ * @defgroup pauliStrings Pauli strings
+ * Functions to use Pauli strings to specify qubit preparation, rotations, and
+ * measurements.
+ * @{
+ */
 
 
 /// @brief      Returns a QExpr that implements the multi-qubit
@@ -39,6 +57,9 @@
 ///             from 0 to reg.size()-1.
 QExpr pauliRotation(datalist::DataList d, qlist::QList qs);
 
+/** @} */ // end of pauliStrings
+
+
 /// @brief      Returns a QExpr that implements the multi-qubit
 ///             rotation specified by d around angle theta
 PROTECT QExpr pauliRotationBy(double theta, datalist::DataList d, qlist::QList qs);
@@ -49,6 +70,10 @@ PROTECT QExpr pauliRotationBy(double theta, datalist::DataList d, qlist::QList q
 ///             each d is a valid DataList input to 'pauliRotation'.
 QExpr pauliRotations(datalist::DataList d, qlist::QList qs);
 
+/** @addtogroup pauliStrings
+ *  
+ *  @{
+ */
 
 /// @brief    Returns a QExpr that implements a multi-qubit Pauli preparation
 ///           specified by d.
@@ -63,11 +88,11 @@ PROTECT QExpr pauliPrep(datalist::DataList d, qlist::QList qs);
 ///           range from 0 to reg.size()-1.
 PROTECT QExpr pauliMeas(datalist::DataList d, qlist::QList qs, bool& b);
 
+/** @} */ // end of addtogroup pauliStrings
 
-
-///////////////////////////////////
-/// Multi-Qubit Pauli Rotations ///
-///////////////////////////////////
+/////////////////////////////////
+// Multi-Qubit Pauli Rotations //
+/////////////////////////////////
 
 
 /// @brief      Returns a QExpr e such that
