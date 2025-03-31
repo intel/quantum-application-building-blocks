@@ -14,6 +14,13 @@
 // or implied warranties, other than those that are expressly stated in the
 // License.
 //===----------------------------------------------------------------------===//
+///
+/// \file qalgorithm.h
+/// \brief A library of quantum algorithms.
+///
+///  A collection of implementations for using and applying quantum algorithms.
+///
+//===----------------------------------------------------------------------===//
 
 #ifndef QALGORITHM_H
 #define QALGORITHM_H
@@ -22,31 +29,68 @@
 #include <clang/Quantum/qexpr.h>
 #include <clang/Quantum/qlist.h>
 
+
 //////////////////
 // Declarations //
 //////////////////
 
-/*******************************************************************************
- * @brief  Quantum Fourier Transform
- *
- * Return a QExpr that applies quantum fourier transform to a set of qubits.
- * Assumes "big endian" number encoding.
- *
- * @param reg  A list of qubits
- ******************************************************************************/
+/** 
+ * @defgroup qalgo Quantum Algorithms
+ * Tools to apply quantum algorithms to qubits.
+ * @{
+ */
+
+/// @brief  Quantum Fourier Transform
+///
+/// Applies quantum Fourier transform to a set of qubits.
+///
+/// QFT is the quantum analogue of discrete Fourier transform. QFT can be thought
+/// of as a change of basis from the computational basis
+///    \f$    \ket{x}    \f$
+/// to the Fourier basis
+///    \f$    \ket{\sim x}    \f$,
+/// where
+///    \f[
+///           \ket{\sim x} =  \frac{1}{\sqrt{2^n}} *
+///                           \sum_{0 <= y < 2^n} e^{2 \pi i x y / 2^n} \ket{y}
+///    \f]
+///
+/// @param reg A list of qubits.
+///
+/// @warning Assumes "big endian" number encoding.
 QExpr qft(qlist::QList reg);
 
-/*******************************************************************************
- * @brief Quantum Phase Estimation
- *
- * Use quantum phase estimation to compute the eigenvalue of the unitary given
- * as input.
- * Assumes "big endian" number encoding.
- *
- * @param reg A list of qubits used for the phase register.
- * @param U the unitary whose phase is to be estimated
- ******************************************************************************/
+
+/// @brief Quantum Phase Estimation
+///
+/// Applies quantum phase estimation to compute the eigenvalue of the unitary
+/// given as input.
+///
+/// QPE is a subroutine which takes in any unitary U, and approximates
+/// the eigenvalue into a separate register for a prepared eigenstate.
+///
+/// More specifically, if we can prepare the state
+///    \f$    \ket{\psi}    \f$
+/// such that if
+///    \f$    U \ket{\psi} = e^{2 \pi i \theta} \ket{\psi}    \f$,
+/// where
+///    \f$    0 \le \theta < 1    \f$ ,
+/// then QPE takes the state
+///    \f$    \ket{\psi} \ket{0}    \f$
+/// to the state
+///    \f$    \ket{\psi}{\theta'} + O(e)    \f$,
+/// where
+///    \f$    |\theta - \theta'| < 1/2^N    \f$
+/// for a phase register of size
+///    \f$    N    \f$.
+///
+/// @param reg A list of qubits used for the phase register.
+/// @param U the unitary whose phase is to be estimated
+///
+/// @warning Assumes "big endian" number encoding.
 QExpr qpe(qlist::QList reg, QExpr U);
+
+/** @} */ // end of qalgo
 
 
 ////////////////////

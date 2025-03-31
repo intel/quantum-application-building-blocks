@@ -1,4 +1,4 @@
-//===--- haar_rand.h --------------------------------------------*- C++ -*-===//
+//===--- haar_rand.h ------------------------------*- C++ -*---------------===//
 //
 //===----------------------------------------------------------------------===//
 //
@@ -14,6 +14,14 @@
 // or implied warranties, other than those that are expressly stated in the
 // License.
 //===----------------------------------------------------------------------===//
+///
+/// \file haar_rand.h
+/// \brief A library of random sequences of unitary matrices. 
+///
+/// A function to generate random unitary matrices distributed according to the
+/// Haar measure.
+///
+//===----------------------------------------------------------------------===//
 
 #ifndef HAAR_RAND_H
 #define HAAR_RAND_H
@@ -24,21 +32,26 @@
 // Eigen linear algebra library
 #include <Eigen/Dense>
 
-/****************************************************************************** 
- * @brief Generate a unitary matrix of size \c n x \c n from a probability
- *        distribution given by the Haar measure.
- *
- * @details The inputs are the desired size of the square matrix n and an
- *     initialized \c mt19937 random number generator. The return is an Eigen
- * \c Matrix object with complex valued entries. The implementation follows the
- * calculation in https://arxiv.org/pdf/math-ph/0609050
- *
- * The random number generator needs to be declared in a scope or initialised
- * such that it is persistent through all calls.
- *
- * @param n the desired size of the unitary matrix
- * @param generator a \c std::mt19937 random number generator
- ****************************************************************************/
+/** 
+ * @defgroup haarRand Random Unitary Matrices
+ * Tools to create sequences of random unitary matrices.
+ * @{
+ */
+
+
+/// @brief Generate a unitary matrix of size \c n x \c n from a probability
+///        distribution given by the Haar measure.
+///
+/// @details The inputs are the desired size of the square matrix n and an
+/// initialized \c mt19937 random number generator. The return is an Eigen
+/// \c Matrix object with complex valued entries. The implementation follows the
+/// calculation in https://arxiv.org/pdf/math-ph/0609050
+///
+/// The random number generator needs to be declared in a scope or initialised
+/// such that it is persistent through all calls.
+///
+/// @param n the desired size of the unitary matrix
+/// @param generator a \c std::mt19937 random number generator
 Eigen::MatrixXcd generateHaarDistributedRandomUnitary(int n,
                                                       std::mt19937 & generator)
 {
@@ -84,10 +97,13 @@ Eigen::MatrixXcd generateHaarDistributedRandomUnitary(int n,
   return Q * lambda;
 }
 
+/** @} */ // end of haarRand
+
+
 /// @brief Convert a complex Matrix object from Eigen into a vector of vectors
 ///
 /// @details Expects the elements of the input matrix to be std::complex<double>
-
+///
 /// @param U_eigen The input matrix to be converted.
 std::vector<std::vector<std::complex<double>>>
 convertEigenToSTL(Eigen::MatrixXcd & U_eigen) {
@@ -106,11 +122,17 @@ convertEigenToSTL(Eigen::MatrixXcd & U_eigen) {
   return U_stl;
 }
 
+/** @addtogroup haarRand
+ *  
+ *  @{
+ */
+
 /// @brief Generate a unitary matrix of size \c n x \c n from a probability
 /// distribution given by the Haar measure as a vector of vectors
 ///
 /// @details Use the Eigen routines for the generation of the matrix elements
-/// and convert to STL type. The first index of the returned vector of vectors
+/// and convert to STL type.
+/// @return The first index of the returned vector of vectors
 /// is treated as i or the row index, and the second as the j or column index.
 /// E.G. A.at(0) would return a vector of the full first row.
 ///      A.at(0).at(3) would return the 3 element of that row, or A_(0,3)
@@ -123,5 +145,7 @@ sampleHaarDistributedUnitary(int n, std::mt19937 & generator) {
 
   return convertEigenToSTL(U_nn);
 }
+
+/** @} */ // end of addtogroup haarRand
 
 #endif // HAAR_RAND_H

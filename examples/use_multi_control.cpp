@@ -12,24 +12,22 @@
 // or implied warranties, other than those that are expressly stated in the
 // License.
 //===----------------------------------------------------------------------===//
-//
-// This source code demonstrates adding controls to gates using each type of
-// quantum function, quantum_kernel and QExpr.
-//
+///
+/// \file use_multi_control.cpp
+/// \brief Demonstrate adding controls to gates using each type of
+/// quantum function, ``quantum_kernel`` and ``QExpr``.
+///
 //===----------------------------------------------------------------------===//
 // Intel(R) Quantum SDK header files
 #include <clang/Quantum/quintrinsics.h>
-#include <quantum.hpp>
 #include <qexpr_utils.h>
+#include <quantum_full_state_simulator_backend.h>
 
 // qabbl/include/
 #include <unitary_ops.h>
 
-// to be as general as possile, 
-// assume the algorithm form doesn't allow conceptually grouping the variable
-// qubits; i.e. it will eventually use all the qubits as targets and controls
 const int total_qubits = 4;
-qbit qubit_register[total_qubits];  
+qbit qubit_register[total_qubits];
 
 const double test_angle = M_PI_2;
 
@@ -45,7 +43,7 @@ quantum_kernel void test_U() {
   }
 
   X(qubit_register[1]);
-  
+
   Uzyz(beta, gamma, delta, qubit_register[0]);
 }
 
@@ -93,7 +91,7 @@ PROTECT QExpr test_U_fleq() {
   }
 
   X(qubit_register[1]);
-  
+
   return this_as_expr + _Uzyz(qubit_register[0], beta, gamma, delta);
 }
 
@@ -113,9 +111,9 @@ PROTECT QExpr test_ctrl_U_fleq() {
 
   qlist::QList controls(qubit_register[1]);
 
-  return this_as_expr + multi_ctrl_Uzyz(controls, qubit_register[0], beta, gamma, delta);
+  return this_as_expr +
+         multi_ctrl_Uzyz(controls, qubit_register[0], beta, gamma, delta);
 }
-
 
 /*
 Circuit to test multi_ctrl_Uzyz() with a two controls.
@@ -136,82 +134,74 @@ PROTECT QExpr test_ccU_fleq() {
   qlist::QList control2(qubit_register[2]);
   qlist::QList controls = control1 + control2;
 
-  return this_as_expr + multi_ctrl_Uzyz(controls, qubit_register[0], beta, gamma, delta);
+  return this_as_expr +
+         multi_ctrl_Uzyz(controls, qubit_register[0], beta, gamma, delta);
 }
 
-
+/// @cond
 int main() {
-    iqsdk::IqsConfig settings(total_qubits, "noiseless");
-    iqsdk::FullStateSimulator quantum_8086(settings);
-    if(iqsdk::QRT_ERROR_SUCCESS != quantum_8086.ready()) {
-        return 1;
-    }
-    // Create a references to qbits we want data from
-    std::vector<std::reference_wrapper<qbit>> qids;
-    // Case A: output will show the state of the entire qubit_register
-    //         to focus only on the target qubit, comment out this loop and
-    //         uncomment Case B below
-    for(int id = 0; id < 2; ++id) {
-        qids.push_back(std::ref(qubit_register[id]));
-    }
-    // End Case A.
-  
-    // Case B: output will show only the target qubit
-    //qids.push_back(std::ref(qubit_register[0]));
-    // end Case B.
-  
-    // build a wildcard string for input to patternToIndices
-    std::string wildcard;
-    for(int j = 0; j < 2; ++j) {
-        wildcard.push_back('?');
-    }
-    // create a QssIndex for each possible state
-    std::vector<iqsdk::QssIndex> all_states =
-    iqsdk::QssIndex::patternToIndices(wildcard);
+  iqsdk::IqsConfig settings(total_qubits, "noiseless");
+  iqsdk::FullStateSimulator quantum_8086(settings);
+  if (iqsdk::QRT_ERROR_SUCCESS != quantum_8086.ready()) {
+    return 1;
+  }
+  // Create a references to qbits we want data from
+  std::vector<std::reference_wrapper<qbit>> qids;
+  // Case A: output will show the state of the entire qubit_register
+  //         to focus only on the target qubit, comment out this loop and
+  //         uncomment Case B below
+  for (int id = 0; id < 2; ++id) {
+    qids.push_back(std::ref(qubit_register[id]));
+  }
+  // End Case A.
 
-    std::cout << "Running Uzyz()" << std::endl;
-    test_U(); // quantum_kernel functions are called directly
-    iqsdk::QssMap<double> probability_map =
-        quantum_8086.getProbabilities(qids, all_states);
-    quantum_8086.displayProbabilities(probability_map);
+  // Case B: output will show only the target qubit
+  // qids.push_back(std::ref(qubit_register[0]));
+  // end Case B.
 
-
-    std::cout << "Running _Uzyz()" << std::endl;
-    qexpr::eval_hold(test_U_fleq()); // QExpr functions are passed to eval_hold
-    probability_map =
-        quantum_8086.getProbabilities(qids, all_states);
-    quantum_8086.displayProbabilities(probability_map);
-
-
-    std::cout << "Running controlled-Uzyz()" << std::endl;
-    test_cU();
-    probability_map =
-        quantum_8086.getProbabilities(qids, all_states);
-    quantum_8086.displayProbabilities(probability_map);
-
-
-    std::cout << "Running controlled-_Uzyz()" << std::endl;
-    qexpr::eval_hold(test_ctrl_U_fleq());
-    probability_map =
-        quantum_8086.getProbabilities(qids, all_states);
-    quantum_8086.displayProbabilities(probability_map);
-
-
-    std::cout << "Running controlled-controlled-Uzyz()" << std::endl;
-    qids.push_back(std::ref(qubit_register[2]));
+  // build a wildcard string for input to patternToIndices
+  std::string wildcard;
+  for (int j = 0; j < 2; ++j) {
     wildcard.push_back('?');
-    all_states = iqsdk::QssIndex::patternToIndices(wildcard);
-    test_twoControl_U();
-    probability_map =
-        quantum_8086.getProbabilities(qids, all_states);
-    quantum_8086.displayProbabilities(probability_map);
+  }
+  // create a QssIndex for each possible state
+  std::vector<iqsdk::QssIndex> all_states =
+      iqsdk::QssIndex::patternToIndices(wildcard);
 
+  std::cout << "Running Uzyz()" << std::endl;
+  test_U(); // quantum_kernel functions are called directly
+  iqsdk::QssMap<double> probability_map =
+      quantum_8086.getProbabilities(qids, all_states);
+  quantum_8086.displayProbabilities(probability_map);
 
-    std::cout << "Running controlled-controlled-_Uzyz()" << std::endl;
-    qexpr::eval_hold(test_ccU_fleq());
-    probability_map =
-        quantum_8086.getProbabilities(qids, all_states);
-    quantum_8086.displayProbabilities(probability_map);
+  std::cout << "Running _Uzyz()" << std::endl;
+  qexpr::eval_hold(test_U_fleq()); // QExpr functions are passed to eval_hold
+  probability_map = quantum_8086.getProbabilities(qids, all_states);
+  quantum_8086.displayProbabilities(probability_map);
 
-    return 0;
+  std::cout << "Running controlled-Uzyz()" << std::endl;
+  test_cU();
+  probability_map = quantum_8086.getProbabilities(qids, all_states);
+  quantum_8086.displayProbabilities(probability_map);
+
+  std::cout << "Running controlled-_Uzyz()" << std::endl;
+  qexpr::eval_hold(test_ctrl_U_fleq());
+  probability_map = quantum_8086.getProbabilities(qids, all_states);
+  quantum_8086.displayProbabilities(probability_map);
+
+  std::cout << "Running controlled-controlled-Uzyz()" << std::endl;
+  qids.push_back(std::ref(qubit_register[2]));
+  wildcard.push_back('?');
+  all_states = iqsdk::QssIndex::patternToIndices(wildcard);
+  test_twoControl_U();
+  probability_map = quantum_8086.getProbabilities(qids, all_states);
+  quantum_8086.displayProbabilities(probability_map);
+
+  std::cout << "Running controlled-controlled-_Uzyz()" << std::endl;
+  qexpr::eval_hold(test_ccU_fleq());
+  probability_map = quantum_8086.getProbabilities(qids, all_states);
+  quantum_8086.displayProbabilities(probability_map);
+
+  return 0;
 }
+/// @endcond
