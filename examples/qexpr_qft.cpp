@@ -61,7 +61,7 @@ QExpr phaseGate(qbit &q, double theta) {
 /// @param x    The target fourier basis element, satisfying 0 <= x < 2^{n-1}
 /// @param n    The number of qubits in the total array
 PROTECT QExpr fourierPhaseGateAt(qbit &q, int idx, int x, int n) {
-  double theta = x * M_PI / pow(2, idx);
+  double theta = x * M_PI / pow(2, n-1-idx);
   return phaseGate(q, theta);
 }
 

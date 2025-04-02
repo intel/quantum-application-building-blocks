@@ -97,11 +97,11 @@ QExpr prepTo(qlist::QList qs, unsigned to) {
 // "big-endian" integer which is passed by reference.
 // we will write the functon with FLEQ so that it can be bound inside the
 // "measureTo" QExpr function below.
-PROTECT QExpr writeTo(cbit *c, unsigned &out, unsigned shft) {
+PROTECT QExpr writeTo(cbit *c, unsigned &out, unsigned max, unsigned shft = 0) {
   out += (*c) << shft;
   return qexpr::cIf(
-      shft > 0,
-      writeTo(c + 1, out, shft - 1) +
+      shft < max,
+      writeTo(c + 1, out, max, shft + 1) +
           qexpr::identity(), // NOTE: this is needed to avoid a known bug.
       qexpr::identity());
 }
