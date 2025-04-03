@@ -57,7 +57,7 @@
 ///
 /// @param reg A list of qubits.
 ///
-/// @warning Assumes "big endian" number encoding.
+/// @warning Assumes "little endian" number encoding.
 QExpr qft(qlist::QList reg);
 
 
@@ -87,7 +87,7 @@ QExpr qft(qlist::QList reg);
 /// @param reg A list of qubits used for the phase register.
 /// @param U the unitary whose phase is to be estimated
 ///
-/// @warning Assumes "big endian" number encoding.
+/// @warning Assumes "little endian" number encoding.
 QExpr qpe(qlist::QList reg, QExpr U);
 
 /** @} */ // end of qalgo
@@ -127,9 +127,9 @@ PROTECT QExpr qftHelper(qlist::QList reg){
   );
 }
 
-//NOTE: '+' is used here because of the big endian convention
+//NOTE: '*' is used here because of the little endian convention
 QExpr qft(qlist::QList reg){
-  return qftHelper(reg) + reverseRegister(reg);
+  return qftHelper(reg) * reverseRegister(reg);
 }
 
 
@@ -142,8 +142,8 @@ U(1) = U,
 U(m + 1) = U(m)^2
 which we can translate to FLEQ recursion through the following
 helper function.
-Note, as this is the big endian convention, the most 
-significant (largest power) corresponds to the beginning of the
+Note, as this is the little endian convention, the least
+significant (smallest power) corresponds to the beginning of the
 register.
 */
 QExpr qpeHelper(qlist::QList reg, QExpr Um){
@@ -151,9 +151,9 @@ QExpr qpeHelper(qlist::QList reg, QExpr Um){
   return qexpr::cIfTrue(sz > 0,
               //control the passed unitary (i.e. this is the mth step)
               //on the first qubit in reg
-              qexpr::control(reg[sz - 1], Um)
+              qexpr::control(reg[0], Um)
               //recurse by passing reg slicing at the begining and Um squared
-              + qpeHelper(reg << 1, Um^2)
+              + qpeHelper(reg >> 1, Um^2)
             );
 }
 
