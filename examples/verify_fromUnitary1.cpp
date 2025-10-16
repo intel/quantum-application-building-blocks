@@ -16,7 +16,7 @@
 /// \file verify_fromUnitary1.cpp
 /// \brief Demonstration and test of fromUnitary1() .
 ///
-/// The example runs \c generateHaarDistributedRandomUnitary in a loop, creating
+/// The example runs \c haar_distribution() in a loop, creating
 /// a sequence of unitary 2x2 matrices. Each matrix is converted to a quantum
 /// algorithm and applied to two reference quantum states using the
 /// Intel Quantum Simulator. Those results are checked against the equivalent
@@ -32,41 +32,27 @@
 #include <quantum_full_state_simulator_backend.h>
 
 // qabbl/include/
-#include <haar_rand.h>
 #include <unitary_ops.h>
 
 // C++ standard library
 #include <iostream>
 
-QExpr verifyCompZero(UMatrix &U, qbit &q) {
+QExpr verifyCompZero(const UMatrix<1> &U, qbit &q) {
   return qexpr::_PrepZ(q) + fromUnitary1(U, q);
 }
 
-QExpr verifyCompOne(UMatrix &U, qbit &q) {
+QExpr verifyCompOne(const UMatrix<1> &U, qbit &q) {
   return qexpr::_PrepZ(q) + qexpr::_X(q) + fromUnitary1(U, q);
 }
 
-std::vector<std::vector<std::complex<double>>> dagger(UMatrix &U) {
-  std::vector<std::vector<std::complex<double>>> Udagger(
-      2, std::vector<std::complex<double>>(2));
-  Udagger.at(0).at(0) = std::conj(U.at(0).at(0));
-  Udagger.at(0).at(1) = std::conj(U.at(1).at(0)); // transpose
-  Udagger.at(1).at(0) = std::conj(U.at(0).at(1)); // transpose
-  Udagger.at(1).at(1) = std::conj(U.at(1).at(1));
+QExpr formIdentity(UMatrix<1> &U, qbit &q) {
 
-  return Udagger;
-}
-
-QExpr formIdentity(UMatrix &U, qbit &q) {
-  UMatrix Udagger = dagger(U);
-
-  return fromUnitary1(Udagger, q);
+  return fromUnitary1(U.adjoint(), q);
 }
 
 /// @cond
 int main() {
   double eps = 1e-4; // for comparing probabilities
-  double tol = 1e-7; // for comparing to unity
 
   // an engine that produces a sequence of pseudo-random values.
   std::mt19937 engine(1234); // fixed seed for deterministic sequence
@@ -86,8 +72,7 @@ int main() {
   std::vector<iqsdk::QssIndex> bases = iqsdk::QssIndex::patternToIndices("?");
 
   for (int tries = 0; tries < 100000; tries++) {
-    std::vector<std::vector<std::complex<double>>> matrix_rep =
-        sampleHaarDistributedUnitary(2, engine);
+    UMatrix<1> matrix_rep = haar_distribution<1>(engine);
 
     for (int state = 0; state < 2; state++) {
       /* Compare Prob( U | state > ) against U_state0 and U_state1 */
@@ -100,25 +85,19 @@ int main() {
       iqsdk::QssMap<double> probability_map =
           iqs_device.getProbabilities(qids, bases);
       double measureZero = probability_map[bases.at(0)] -
-                           std::real(matrix_rep.at(state).at(0) *
-                                     std::conj(matrix_rep.at(state).at(0)));
+        std::real(matrix_rep(state, 0) *
+                  std::conj(matrix_rep(state, 0)));
       double measureOne = probability_map[bases.at(1)] -
-                          std::real(matrix_rep.at(state).at(1) *
-                                    std::conj(matrix_rep.at(state).at(1)));
+        std::real(matrix_rep(state, 1) *
+                  std::conj(matrix_rep(state, 1)));
 
       if (measureZero > eps) {
         std::cout << "The difference between IQS probabilities and matrix "
                      "elements is too large!\n";
         std::cout << "state: " << state << std::endl;
         std::cout << "the complex-square of the matrix elements\n";
-        for (int row = 0; row < 2; row++) {
-          for (int column = 0; column < 2; column++) {
-            std::cout << matrix_rep.at(row).at(column) *
-                             std::conj(matrix_rep.at(row).at(column))
-                      << " ";
-          }
-          std::cout << std::endl;
-        }
+        std::cout << matrix_rep(state,0) * matrix_rep.conjugate()(state,0)
+                  << std::endl;
         std::cout << "the IQS-probabilities\n";
         iqs_device.displayProbabilities(probability_map);
         std::cout << "difference in measuring 0 " << measureZero << std::endl;
@@ -130,39 +109,26 @@ int main() {
                      "elements is too large!\n";
         std::cout << "state: " << state << std::endl;
         std::cout << "the complex-square of the matrix elements\n";
-        for (int row = 0; row < 2; row++) {
-          for (int column = 0; column < 2; column++) {
-            std::cout << matrix_rep.at(row).at(column) *
-                             std::conj(matrix_rep.at(row).at(column))
-                      << " ";
-          }
-          std::cout << std::endl;
-        }
+        std::cout << matrix_rep(state,1) * matrix_rep.conjugate()(state,1)
+                  << std::endl;
         std::cout << "the IQS-probabilities\n";
         iqs_device.displayProbabilities(probability_map);
         std::cout << "difference in measuring 1 " << measureOne << std::endl;
-
+        std::cout << matrix_rep * matrix_rep.conjugate() << std::endl;
         return 1;
       } // end measureOne
       /* Apply U-dagger and compare to initial probability */
       qexpr::eval_hold(formIdentity(matrix_rep, q0));
       probability_map = iqs_device.getProbabilities(qids, bases);
       double unity_difference = 1.0 - probability_map[bases.at(state)];
-      if (unity_difference > tol) {
+      if (unity_difference > eps) {
         std::cout
             << "The difference between U U^dagger and Identity is too large!\n";
         std::cout << "state: " << state << std::endl;
         std::cout << "the complex-square of the matrix elements\n";
-        for (int row = 0; row < 2; row++) {
-          for (int column = 0; column < 2; column++) {
-            std::cout << matrix_rep.at(row).at(column) *
-                             std::conj(matrix_rep.at(row).at(column))
-                      << " ";
-          }
-          std::cout << std::endl;
-        }
+        std::cout << matrix_rep * matrix_rep.adjoint() << std::endl;
         std::cout << "Unity difference: " << unity_difference << std::endl;
-
+        iqs_device.displayProbabilities(probability_map);
         return 1;
       }
     } // loop over state
