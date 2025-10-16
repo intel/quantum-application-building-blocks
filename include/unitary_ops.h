@@ -32,15 +32,11 @@
 #include <clang/Quantum/qexpr.h>
 #include <qexpr_utils.h>
 
+#include <umatrix.h>
+
 /// \var C
 /// @brief A type definition for \c std::complex<double>.
 using C = std::complex<double>;
-
-/// \var UMatrix
-/// @brief A type definition for building matrices from a \c std::vector of
-///        \c std::vector representing the rows. Each elements of the row
-///        \c std::vector is a \c std::complex<double>.
-using UMatrix = std::vector<std::vector<C>>;
 
 
 //////////////////
@@ -92,7 +88,8 @@ QExpr _Uzyz(qbit &target, const double &beta,
 ///
 /// @param U A single-qubit (2x2) unitary.
 /// @param q The qubit on which to apply \c U.
-QExpr fromUnitary1(UMatrix &U, qbit &q);
+/// @param debug Perform checks and print additional output for debugging.
+QExpr fromUnitary1(const UMatrix<1> &U, qbit &q, bool debug = false);
 
 
 /** @} */ // end of UnitaryZYZ
@@ -285,6 +282,7 @@ QExpr multi_ctrl_Uzyz(qlist::QList ctrls, qbit &target,
 /// row are the elements of the inner vector.
 ///
 /// @param U A single-qubit (2x2) unitary matrix given as a vector of vectors.
+/// @param debug Perform checks and print additional output for debugging.
 // Return a tuple of the angles such that
 // U = e^{i * phi} RZ(alpha) RY(beta) RZ(gamma).
 ///
@@ -293,49 +291,62 @@ QExpr multi_ctrl_Uzyz(qlist::QList ctrls, qbit &target,
 // U = e^{i*phi} *
 //|e^{-i*gamma/2-i*alpha/2}*cos(beta/2) -e^{-i*gamma/2+i*alpha/2}*sin(beta/2)|
 //|e^{ i*gamma/2-i*alpha/2}*sin(\beta/2) e^{i*gamma/2+i*alpha/2}*cos(beta/2) |
-std::tuple<double, double, double, double> unitary1ToZYZDecomposition(UMatrix& U) {
-  const double EPSILON = 10e-20; // used for determining == 0
+std::tuple<double, double, double, double>
+unitary1ToZYZDecomposition(const UMatrix<1> &U, bool debug = false) {
+  const double EPSILON = 10e-4; // used for determining == 0
 
   // compute Phi and rescale the remaining elements
   // determinant = e^(i*2*Phi)
-  std::complex<double> determinant = U.at(0).at(0)*U.at(1).at(1) - U.at(0).at(1)*U.at(1).at(0);
-
+  C determinant = U.determinant();
   double Phi = std::atan2(determinant.imag(), determinant.real()) / 2;
 
-  // compute v matrix where v = u * e^-i*phase
-  std::complex<double> phase(std::cos(Phi), -1*std::sin(Phi));
-  std::vector<std::complex<double>> v;
-  for (auto& row : U) {
-    for (auto& element : row) {
-      v.push_back(element * phase);
-    }
+  C phase(std::cos(Phi), -std::sin(Phi));
+  auto v = phase * U;
+
+  double beta = std::acos(2 * std::norm(v(0, 0)) - 1); // assume |v00| != 0
+  if (isEqual(v(0, 0), 0.0, EPSILON)) {
+    beta = std::asin(1 - 2 * std::norm(v(0, 1)));
   }
 
-  double beta = std::acos(2*std::norm(v.at(0))-1); // assume |v00| != 0
-  if (std::norm(v.at(1)) >= 0.0 - EPSILON && std::norm(v.at(1)) <= 0.0 + EPSILON) {  // if |v00| < |v01|
-    beta = std::asin(1-2*std::norm(v.at(1)));
-  }
-
-  double alpha_plus_gamma = 2 * std::atan2(v.at(3).imag() / std::cos(beta/2),
-                                          v.at(3).real() / std::cos(beta/2));
-  if (std::cos(beta/2) >= 0.0 - EPSILON && std::cos(beta/2) <= 0.0 + EPSILON) {
+  double alpha_plus_gamma = 2 * std::atan2(v(1, 1).imag() / std::cos(beta / 2),
+                                           v(1, 1).real() / std::cos(beta / 2));
+  if (isEqual(std::cos(beta / 2), 0.0, EPSILON)) {
     alpha_plus_gamma = 0;
   }
 
-  double alpha_minus_gamma = 2 * std::atan2(v.at(2).imag() / std::sin(beta/2),
-                                           v.at(2).real() / std::sin(beta/2));
-  if (std::sin(beta/2) >= 0.0 - EPSILON && std::sin(beta/2) <= 0.0 + EPSILON) {
-    alpha_minus_gamma = 0;
+  double alpha_minus_gamma =
+      2 * std::atan2(v(1, 0).imag() / std::sin(beta / 2),
+                     v(1, 0).real() / std::sin(beta / 2));
+  if (isEqual(std::sin(beta / 2), 0.0, EPSILON)) {
+    alpha_minus_gamma = 0.0;
   }
 
   double alpha = (alpha_plus_gamma + alpha_minus_gamma) / 2;
-  double gamma= (alpha_plus_gamma - alpha_minus_gamma) / 2;
+  double gamma = (alpha_plus_gamma - alpha_minus_gamma) / 2;
+
+  if (debug) {
+    // Validate that U = e^{i Phi} RZ(alpha) RY(beta) RZ(gamma)
+    // C phase(std::cos(Phi), -std::sin(Phi));
+    UMatrix<1> RHS =
+        std::conj(phase) * RZMatrix(alpha) * RYMatrix(beta) * RZMatrix(gamma);
+
+    if (!isEqual<1>(U, RHS, EPSILON)) {
+      std::cout << "== ERROR in unitary1ToZYZDecomposition ==\n";
+      std::cout << "U: \n" << U << "\n";
+      std::cout << "Phi: " << Phi << "\n";
+      std::cout << "alpha: " << alpha << "\n";
+      std::cout << "beta: " << beta << "\n";
+      std::cout << "gamma: " << gamma << "\n";
+      std::cout << "RHS: \n" << RHS << "\n";
+      assert(false);
+    }
+  }
 
   return {Phi, alpha, beta, gamma};
 }
 
 
-QExpr fromUnitary1(UMatrix &U, qbit &q) {
+QExpr fromUnitary1(const UMatrix<1> &U, qbit &q, bool debug) {
     auto [Phi, alpha, beta, gamma] = unitary1ToZYZDecomposition(U);
     // Ignore the phase (first tup) because we only work up to phase
     return qexpr::_RZ(q, alpha) + qexpr::_RY(q, beta) + qexpr::_RZ(q, gamma);
