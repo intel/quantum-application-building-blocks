@@ -134,9 +134,13 @@ QExpr reduceSupport(datalist::DataList p1, qbit& q1, datalist::DataList p2, qbit
             )));
 }
 
-/// @brief  Returns a QExpr that implements a single-qubit
-///         rotation around the Pauli axis specified by p
-/// @param p A QList of length 1 equal to "X", "Y", or "Z"
+/// @brief        Returns a QExpr that implements a single-qubit
+///               rotation around the Pauli axis specified by p
+///
+/// @param p      A \c DataList of length 1 equal to "X", "Y", or "Z" to specify
+///               the rotation axis.
+/// @param q      The \c qbit variable the rotation operates on.
+/// @param theta  The rotation angle about the specified axis.
 QExpr singleQubitRotation(datalist::DataList p, qbit& q, double theta) {
     return  qexpr::cIf(p == datalist::DataList("X"), qexpr::_RX(q,theta),
             qexpr::cIf(p == datalist::DataList("Y"), qexpr::_RY(q,theta),

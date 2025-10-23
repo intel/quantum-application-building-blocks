@@ -35,7 +35,7 @@
 //////////////////
 
 /** 
- * @defgroup qstates Quantum States
+ * @addtogroup qstates Quantum States
  * Functions representing quantum states with specific identities and
  * extrapolations.
  * @{
