@@ -19,12 +19,13 @@ Example program:
 
 Example Intel(R) Quantum SDK compiler invocation:
 ```bash
-/path/to/IQSDK/intel-quantum-compiler -I/path/to/quantum-library/qabbl/include my_program.cpp
+/path/to/IQSDK/intel-quantum-compiler -I/path/to/quantum-application-building-blocks/include my_program.cpp
 ```
 
-Some parts of QABBL are implemented with matrix types from the Eigen linear algebra library. After
-getting a copy of Eigen with `git clone https://gitlab.com/libeigen/eigen.git`
-you can provide its directory to the Intel(R) Quantum SDK compiler via the `-I` flag.
+Some parts of QABBL are implemented with code from third-party C++ libraries.
+These libraries can be found in the list of include directives.
+After getting a copy of each library listed in the program (typically through git clone),
+compile the program by modifying the compilation command by adding an entry per library of the `-I` flag and the path to the library (in the same way as done for the `qabbl/include` as described above).
 
 ## Get Help
 
@@ -32,4 +33,4 @@ https://community.intel.com/t5/Intel-Quantum-SDK/bd-p/intel-quantum-sdk
 
 ## Essential Documentation
 
-https://developer.intel.com/quantumsdk
+https://intel.github.io/quantum-sdk-docs/
