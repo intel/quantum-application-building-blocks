@@ -16,7 +16,10 @@
 /// \file ghz_example.cpp
 /// \brief Demonstrate creating the Greenberger–Horne–Zeilinger (GHZ) State
 ///        with ghz() .
-//
+///
+/// Compiles with Intel Quantum SDK version 1.1 and later:
+/// /<your>/<path>/<to>/intel/quantum-sdk/intel-quantum-compiler -I /<your>/<path>/<to>/quantum-application-building-blocks/include /<your>/<path>/<to>/quantum-application-building-blocks/examples/ghz_example.cpp
+///
 //===----------------------------------------------------------------------===//
 // Intel(R) Quantum SDK header files
 #include <clang/Quantum/qexpr.h>
