@@ -54,7 +54,10 @@
 /// The data for 2 different molecules are included, and the desired molecule
 /// can be selected by changing out the commented variables ``ham_filename``,
 /// ``target_energy``, and ``output_fname``.
-//
+///
+/// Compiles with Intel Quantum SDK version 1.1.3 and later:
+/// /<your>/<path>/<to>/intel/quantum-sdk/intel-quantum-compiler -I /<your>/<path>/<to>/ensmallen/include -I /<your>/<path>/<to>/quantum-application-building-blocks/include /<your>/<path>/<to>/quantum-application-building-blocks/examples/vqe_qk.cpp
+///
 //===----------------------------------------------------------------------===//
 
 // C++ standard library
