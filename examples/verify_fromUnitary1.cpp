@@ -25,6 +25,10 @@
 /// The conjugate transpose of the matrix is also converted to quantum algorithm
 /// and applied to ensure that the original quantum state is recovered to within
 /// \c 1e-7.
+///
+/// Compiles with Intel Quantum SDK version 1.1.3 and later:
+/// /<your>/<path>/<to>/intel/quantum-sdk/intel-quantum-compiler -I /<your>/<path>/<to>/eigen -I /<your>/<path>/<to>/quantum-application-building-blocks/include /<your>/<path>/<to>/quantum-application-building-blocks/examples/verify_fromUnitary1.cpp
+///
 //===----------------------------------------------------------------------===//
 // Intel(R) Quantum SDK header files
 #include <clang/Quantum/qexpr.h>

@@ -21,6 +21,10 @@
 ///    \f$    2^n    \f$.
 /// The matrix is confirmed to be unitary to within
 ///    \f$    10^{-14}    \f$.
+///
+/// Compiles with Intel Quantum SDK version 1.1 and later:
+/// /<your>/<path>/<to>/intel/quantum-sdk/intel-quantum-compiler -I /<your>/<path>/<to>/eigen -I /<your>/<path>/<to>/quantum-application-building-blocks/include /<your>/<path>/<to>/quantum-application-building-blocks/examples/verify_haar_rand.cpp
+///
 //===----------------------------------------------------------------------===//
 // qabbl/include/
 #include <umatrix.h>

@@ -18,6 +18,9 @@
 ///
 /// See "state_prep.h" for detailed descriptions.
 ///
+/// Compiles with Intel Quantum SDK version 1.1.4 and later:
+/// /<your>/<path>/<to>/intel/quantum-sdk/intel-quantum-compiler -I /<your>/<path>/<to>/eigen -I /<your>/<path>/<to>/quantum-application-building-blocks/include /<your>/<path>/<to>/quantum-application-building-blocks/examples/validate_prepareState.cpp
+///
 //===----------------------------------------------------------------------===//
 // C++ standard library
 #include <cassert>
