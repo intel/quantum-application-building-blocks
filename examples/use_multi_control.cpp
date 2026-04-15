@@ -17,6 +17,9 @@
 /// \brief Demonstrate adding controls to gates using each type of
 /// quantum function, ``quantum_kernel`` and ``QExpr``.
 ///
+/// Compiles with Intel Quantum SDK version 1.1 and later:
+/// /<your>/<path>/<to>/intel/quantum-sdk/intel-quantum-compiler -I /<your>/<path>/<to>/eigen -I /<your>/<path>/<to>/quantum-application-building-blocks/include /<your>/<path>/<to>/quantum-application-building-blocks/examples/use_multi_control.cpp
+///
 //===----------------------------------------------------------------------===//
 // Intel(R) Quantum SDK header files
 #include <clang/Quantum/quintrinsics.h>

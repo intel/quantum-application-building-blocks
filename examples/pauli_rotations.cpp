@@ -21,6 +21,9 @@
 /// implementing the multi-qubit rotation, measurement, or preparation
 /// specified.
 ///
+/// Compiles with Intel Quantum SDK version 1.1 and later:
+/// /<your>/<path>/<to>/intel/quantum-sdk/intel-quantum-compiler -I /<your>/<path>/<to>/quantum-application-building-blocks/include /<your>/<path>/<to>/quantum-application-building-blocks/examples/pauli_rotations.cpp
+///
 //===----------------------------------------------------------------------===//
 // Intel(R) Quantum SDK header files
 #include <quantum_full_state_simulator_backend.h>
